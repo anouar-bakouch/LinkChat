@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { CustomError } from "../models/CustomError"
-import { Session } from "../models/Session"
+import { CustomError } from "../models/CustomError";
+import { Session } from "../models/Session";
 import { loginUser } from "./loginApi";
+import React from "react";
 
-
-export function login () {
+export function Login () {
 
     const [error,setError] = useState({} as CustomError);
-    const [session,setSession] = useState({} as Session);
+    const [session,setSession] = useState({} as Session);   
 
     const HandleSubmit = (event:React.FormEvent<HTMLFormElement>) => {
 
@@ -26,6 +26,21 @@ export function login () {
         });
 
     }
+
+    return(<>
+        <form onSubmit={HandleSubmit}>
+            <input name="login" placeholder="login"/><br/>
+            <input name="password" placeholder="password"/><br/>
+            <button type="submit">connexion</button>
+        </form>
+            { session.token &&
+                <span>{session.username} : {session.token}</span>
+            }
+            { error.message &&
+                <span>{error.message}</span>
+            }
+        </>
+    );
 
 
 
