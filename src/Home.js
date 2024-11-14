@@ -2,6 +2,7 @@ import { useDispatch } from 'react-redux';
 import { clearUser } from './features/user/userSlice'; 
 import { Button } from '@mui/material';
 
+
 function Home() {
   const dispatch = useDispatch();
 

@@ -1,13 +1,18 @@
-// Login.tsx
 import { useState } from "react";
 import React from "react";
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import CryptoJS from "crypto-js";
-import { registerUser } from "./RegisterApi"
-import { RegisterError } from "../models/RegisterError";
+import { useDispatch } from 'react-redux';
+import { setUser } from '../features/user/userSlice';
+import { loginUser } from "./loginApi";
+
+interface LoginError {
+  message: string;
+}
 
 export function Login() {
-  const [error, setError] = useState<RegisterError | null>(null);
+  const [error, setError] = useState<LoginError | null>(null);
+  const dispatch = useDispatch();
 
   const HandleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -15,20 +20,23 @@ export function Login() {
     const data = new FormData(form);
 
     const username = data.get("login") as string;
-    const email = data.get("email") as string;
     const password = data.get("password") as string;
 
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     try {
-      await registerUser({
-          username, email, password: hashedPassword,
-          user_id: 0
-      });
-      form.reset();
+      const result = await loginUser({ username, password: hashedPassword });
+      const token = result.token;
+
+      sessionStorage.setItem("sessionToken", token);
+
+      dispatch(setUser({ token, username }));
+
       setError(null);
-    } catch (registerError: any) {
-      setError({ message: registerError.message });
+
+      form.reset();
+    } catch (loginError: any) {
+      setError({ message: loginError.message });
     }
   };
 
@@ -36,14 +44,13 @@ export function Login() {
     <Container maxWidth="sm">
       <Box mt={5}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Inscription
+          Connexion
         </Typography>
         <form onSubmit={HandleSubmit}>
           <TextField name="login" label="Login" fullWidth margin="normal" />
-          <TextField name="email" label="Email" fullWidth margin="normal" />
           <TextField name="password" label="Password" type="password" fullWidth margin="normal" />
           <Button type="submit" variant="contained" color="primary" fullWidth>
-            Inscription
+            Connexion
           </Button>
         </form>
         {error && <Typography color="error">{error.message}</Typography>}

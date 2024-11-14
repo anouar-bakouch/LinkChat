@@ -2,10 +2,12 @@ import { useState } from "react";
 import React from "react";
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import CryptoJS from "crypto-js";
-import { registerUser } from "./RegisterApi"
-import { RegisterError } from "../models/RegisterError";
+import { registerUser } from "./RegisterApi";
 
 
+interface RegisterError {
+  message: string;
+}
 
 export function Register() {
   const [error, setError] = useState<RegisterError | null>(null);
@@ -22,10 +24,7 @@ export function Register() {
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     try {
-      await registerUser({
-          username, email, password: hashedPassword,
-          user_id: 0
-      });
+      await registerUser({ username, email, password: hashedPassword });
       form.reset();
       setError(null);
     } catch (registerError: any) {
