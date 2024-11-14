@@ -1,9 +1,18 @@
 import './App.css';
-import { Login } from './users/Login.tsx';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Login } from './users/Login'; 
+import Home from './Home';
+import { Register } from './users/Register'; 
 
 function App() {
   return (
-    <Login/>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
+      </Routes>
+    </Router>
   );
 }
 

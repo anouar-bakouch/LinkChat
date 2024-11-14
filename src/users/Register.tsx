@@ -1,12 +1,13 @@
-// Login.tsx
 import { useState } from "react";
 import React from "react";
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import CryptoJS from "crypto-js";
-import { registerUser } from "./RegisterApi"
+import { registerUser } from "./RegisterApi"
 import { RegisterError } from "../models/RegisterError";
 
-export function Login() {
+
+
+export function Register() {
   const [error, setError] = useState<RegisterError | null>(null);
 
   const HandleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
