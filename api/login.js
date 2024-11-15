@@ -1,6 +1,7 @@
 import { db } from '@vercel/postgres';
 import { Redis } from '@upstash/redis';
 import { hashPassword } from '../lib/hash';
+import { comparePassword } from '../lib/comparePassword';
 
 export const config = {
     runtime: 'edge',
@@ -25,18 +26,18 @@ export default async function handler(request) {
     const client = await db.connect();
 
     try {
-        // Fetch user from the database
-        const result = await client.query('SELECT * FROM users WHERE username = $1', [username]);
-        const user = result.rows[0];
-
-        if (!user) {
-            return new Response(JSON.stringify({ message: 'Invalid username or password' }), { status: 401 });
+        // Check if user exists
+        const existingUser = await client.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (existingUser.rows.length === 0) {
+            return new Response(JSON.stringify({ message: 'Invalid username or password' }), { status: 400 });
         }
 
-        // Verify password
-        const hashedPassword = await hashPassword(password);
-        if (hashedPassword !== user.password) {
-            return new Response(JSON.stringify({ message: 'Invalid username or password' }), { status: 401 });
+        const user = existingUser.rows[0];
+
+        // Compare the password
+        const isPasswordValid = await comparePassword(password, user.password);
+        if (!isPasswordValid) {
+            return new Response(JSON.stringify({ message: 'Invalid username or password' }), { status: 400 });
         }
 
         // Generate token

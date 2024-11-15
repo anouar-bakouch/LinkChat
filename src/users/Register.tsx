@@ -25,7 +25,11 @@ export function Register() {
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     try {
-      await registerUser({ username, email, password: hashedPassword });
+      await registerUser({
+        username, email, password: hashedPassword,
+        id: "",
+        lastLogin: ""
+      });
       form.reset();
       setError(null);
       navigate('/login')
