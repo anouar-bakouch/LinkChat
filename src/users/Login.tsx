@@ -5,6 +5,7 @@ import CryptoJS from "crypto-js";
 import { useDispatch } from 'react-redux';
 import { setUser } from '../features/user/userSlice';
 import { loginUser } from "./loginApi";
+import { useNavigate } from "react-router-dom";
 
 interface LoginError {
   message: string;
@@ -13,6 +14,7 @@ interface LoginError {
 export function Login() {
   const [error, setError] = useState<LoginError | null>(null);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const HandleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,12 +31,10 @@ export function Login() {
       const token = result.token;
 
       sessionStorage.setItem("sessionToken", token);
-
       dispatch(setUser({ token, username }));
-
       setError(null);
-
       form.reset();
+      // useNavigate('/HomeSpace')
     } catch (loginError: any) {
       setError({ message: loginError.message });
     }

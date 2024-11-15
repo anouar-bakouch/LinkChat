@@ -1,18 +1,12 @@
 import { db } from '@vercel/postgres';
 import { Redis } from '@upstash/redis';
+import { hashPassword } from '../lib/hash';
 
 export const config = {
     runtime: 'edge',
 };
 
 const redis = Redis.fromEnv();
-
-async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 async function generateToken() {
     const array = new Uint8Array(16);
