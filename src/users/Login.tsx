@@ -5,7 +5,7 @@ import CryptoJS from "crypto-js";
 import { useDispatch } from 'react-redux';
 import { setUser } from '../features/user/userSlice';
 import { loginUser } from "./loginApi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 interface LoginError {
   message: string;
@@ -31,10 +31,13 @@ export function Login() {
       const token = result.token;
 
       sessionStorage.setItem("sessionToken", token);
+
       dispatch(setUser({ token, username }));
+
       setError(null);
+
       form.reset();
-      navigate('/chat')
+      navigate('/chat'); // Redirect to Chat component
     } catch (loginError: any) {
       setError({ message: loginError.message });
     }
