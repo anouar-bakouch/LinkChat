@@ -51,9 +51,6 @@ export default async function handler(request) {
         // Store token in Redis with a 1-hour expiration
         await redis.set(token, JSON.stringify({ userId: user.id, username: user.username }), { ex: 3600 });
 
-        // Update last login date
-        await client.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
-
         return new Response(JSON.stringify({ token }), { status: 200 });
     } catch (error) {
         console.error(error);

@@ -3,6 +3,7 @@ import React from "react";
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import CryptoJS from "crypto-js";
 import { registerUser } from "./RegisterApi";
+import { useNavigate } from "react-router-dom";
 
 
 interface RegisterError {
@@ -11,7 +12,7 @@ interface RegisterError {
 
 export function Register() {
   const [error, setError] = useState<RegisterError | null>(null);
-
+  const navigate = useNavigate();
   const HandleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -27,6 +28,7 @@ export function Register() {
       await registerUser({ username, email, password: hashedPassword });
       form.reset();
       setError(null);
+      navigate('/login')
     } catch (registerError: any) {
       setError({ message: registerError.message });
     }
