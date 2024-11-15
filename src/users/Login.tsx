@@ -34,7 +34,7 @@ export function Login() {
       dispatch(setUser({ token, username }));
       setError(null);
       form.reset();
-      // useNavigate('/HomeSpace')
+      navigate('/chat')
     } catch (loginError: any) {
       setError({ message: loginError.message });
     }
