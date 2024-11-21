@@ -5,7 +5,6 @@ import CryptoJS from "crypto-js";
 import { registerUser } from "./RegisterApi";
 import { useNavigate } from "react-router-dom";
 
-
 interface RegisterError {
   message: string;
 }
@@ -13,7 +12,8 @@ interface RegisterError {
 export function Register() {
   const [error, setError] = useState<RegisterError | null>(null);
   const navigate = useNavigate();
-  const HandleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -32,7 +32,7 @@ export function Register() {
       });
       form.reset();
       setError(null);
-      navigate('/login')
+      navigate('/login');
     } catch (registerError: any) {
       setError({ message: registerError.message });
     }
@@ -44,7 +44,7 @@ export function Register() {
         <Typography variant="h4" component="h1" gutterBottom>
           Inscription
         </Typography>
-        <form onSubmit={HandleSubmit}>
+        <form onSubmit={handleSubmit}>
           <TextField name="login" label="Login" fullWidth margin="normal" />
           <TextField name="email" label="Email" fullWidth margin="normal" />
           <TextField name="password" label="Password" type="password" fullWidth margin="normal" />
