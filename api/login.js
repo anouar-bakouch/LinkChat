@@ -1,6 +1,5 @@
 import { db } from '@vercel/postgres';
 import { Redis } from '@upstash/redis';
-import { hashPassword } from '../lib/hash';
 import { comparePassword } from '../lib/comparePassword';
 
 export const config = {

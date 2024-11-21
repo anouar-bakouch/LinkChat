@@ -16,5 +16,9 @@ export async function loginUser(loginData: LoginData): Promise<LoginResponse> {
     throw new Error(errorResponse.message || "Login failed");
   }
 
-  return await response.json();
+  const data = await response.json();
+  localStorage.setItem('authToken', data.token); // Store the token in local storage
+  return data;
+
+
 }

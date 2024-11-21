@@ -1,11 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import { selectAuthToken } from './features/auth/authSlice';
 
-const PrivateRoute = ({ element }) => {
-  const token = useSelector((state) => state.user.token);
+function PrivateRoute({ children }) {
+  const token = useSelector(selectAuthToken);
 
-  return token ? element : <Navigate to="/login" />;
-};
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+}
 
 export default PrivateRoute;
