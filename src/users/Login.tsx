@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import { loginUser } from './loginApi';
 
-export function Login() {
+const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -19,28 +20,43 @@ export function Login() {
   };
 
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">Login</button>
-      </form>
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 8 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Login
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Username"
+              variant="outlined"
+              fullWidth
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </Box>
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              label="Password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Box>
+          {error && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+        </form>
+      </Box>
+    </Container>
   );
-}
+};
+
+export default Login;

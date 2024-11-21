@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setAuthToken } from './features/auth/authSlice';
 import PrivateRoute from './PrivateRoute';
-import { Login } from './users/Login';
+import Login from './users/Login';
 import { Chat } from './components/Chat';
 import Home from './Home';
 import { Register } from './users/Register';
