@@ -8,7 +8,6 @@ import { Chat } from './components/Chat';
 import Home from './Home';
 import { Register } from './users/Register';
 
-
 function App() {
   const dispatch = useDispatch();
 

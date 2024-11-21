@@ -8,7 +8,7 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const token = useSelector(selectAuthToken);
+  const token = useSelector(selectAuthToken) || localStorage.getItem('authToken');
 
   console.log('PrivateRoute token:', token);
 
