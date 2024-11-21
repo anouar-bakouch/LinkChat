@@ -1,9 +1,9 @@
 
 
 export interface Message {
-    id : string;
-    senderId: string;
-    senderName: string;
+    id: string;
+    conversationId: string;
+    userId: string;
     content: string;
-    timestamp: string;
-}
+    createdAt: string;
+  }
