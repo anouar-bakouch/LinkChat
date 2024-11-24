@@ -4,17 +4,6 @@ export const config = {
     runtime: 'edge',
 };
 
-// Mock implementation of checkSession and unauthorizedResponse
-async function checkSession(request) {
-    // Implement your session checking logic here
-    // For example, check if a valid token is present in the request headers
-    const token = request.headers.get('Authorization');
-    if (!token) {
-        return false;
-    }
-    // Validate the token (this is just a placeholder, replace with actual validation logic)
-    return token === 'valid-token';
-}
 
 function unauthorizedResponse() {
     return new Response(JSON.stringify({ message: 'Unauthorized' }), {

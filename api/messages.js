@@ -1,10 +1,9 @@
+import { getConnecterUser, triggerNotConnected } from "../lib/session.js";
 import { db } from '@vercel/postgres';
+import PushNotifications from '@pusher/push-notifications-server';  // Utilisation d'import
 
-export const config = {
-    runtime: 'edge',
-};
 
-export default async function handler(request) {
+export default async (request, response) => {
     try {
         const user = await getConnecterUser(request);
 
@@ -12,63 +11,86 @@ export default async function handler(request) {
             return triggerNotConnected(response);
         }
 
-        if (request.method === 'GET') {
-            const { conversationId } = request.query;
-            if (!conversationId) {
-                return new Response(JSON.stringify({ message: 'Conversation ID is required' }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
+        const { receiver_id, content, receiver_type, image_url } = await request.body;
+
+        if (!receiver_id || !content || !receiver_type) {
+            return response.status(400).json({ error: "Receiver ID, content, and receiver type are required." });
+        }
+
+        // Enregistrer le message dans la base de données
+        const result = await db.sql`
+            INSERT INTO messages (sender_id, sender_name, receiver_id, content, receiver_type, image_url)
+            VALUES (${user.id}, ${user.username}, ${receiver_id}, ${content}, ${receiver_type}, ${image_url})
+            RETURNING message_id, sender_id, sender_name, receiver_id, content, timestamp, receiver_type, image_url;
+        `;
+
+        if (result.rowCount === 0) {
+            return response.status(500).json({ error: "Message could not be saved." });
+        }
+
+        const savedMessage = result.rows[0];
+
+        // Initialiser le client Push Notifications
+        const beamsClient = new PushNotifications({
+            instanceId: process.env.PUSHER_BEAMS_INSTANCE_ID,
+            secretKey: process.env.PUSHER_BEAMS_SECRET_KEY,
+        });
+
+        // Fonction pour envoyer des notifications
+        const sendPushNotification = async (externalIds, message, sender) => {
+            try {
+                await beamsClient.publishToUsers(externalIds, {
+                    web: {
+                        notification: {
+                            title: sender.username,
+                            body: message.content,
+                            icon: "https://www.univ-brest.fr/themes/custom/ubo_parent/favicon.ico",
+                        },
+                        data: {
+                            senderId: sender.id,
+                            receiver_Id: receiver_id,
+                            receiverType: receiver_type,
+                            messageId: message.message_id,
+                        },
+                    },
                 });
+                console.log('Notification sent');
+            } catch (error) {
+                console.error("Error sending notification:", error);
             }
+        };
 
-            // Execute the query to fetch messages
-            const result = await db.sql`SELECT id, user_id, content, created_at FROM messages WHERE conversation_id = ${conversationId} ORDER BY created_at ASC`;
-            console.log('Query executed successfully:', result);
-
-            // Return the result as JSON
-            return new Response(JSON.stringify(result.rows), {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        } else if (request.method === 'POST') {
-            const { receiver_id, content, receiver_type, image_url } = await request.json();
-
-            if (!receiver_id || !content || !receiver_type) {
-                return new Response(JSON.stringify({ error: "Receiver ID, content, and receiver type are required." }), {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' },
-                });
-            }
-
-            // Enregistrer le message dans la base de données
-            const result = await db.sql`
-                INSERT INTO messages (sender_id, sender_name, receiver_id, content, receiver_type, image_url)
-                VALUES (${user.id}, ${user.username}, ${receiver_id}, ${content}, ${receiver_type}, ${image_url})
-                RETURNING message_id, sender_id, sender_name, receiver_id, content, timestamp, receiver_type, image_url;
+        if (receiver_type === 'group') {
+            // Récupérer tous les utilisateurs, sauf l'expéditeur
+            const allUsersResult = await db.sql`
+                SELECT external_id 
+                FROM users 
+                WHERE user_id != ${user.id};
             `;
 
-            if (result.rowCount === 0) {
-                return new Response(JSON.stringify({ error: "Failed to insert message" }), {
-                    status: 500,
-                    headers: { 'Content-Type': 'application/json' },
-                });
+            if (allUsersResult.rowCount > 0) {
+                const externalIds = allUsersResult.rows.map(row => row.external_id);
+                await sendPushNotification(externalIds, savedMessage, user);
             }
+        } else if (receiver_type === 'user') {
+            // Récupérer l'ID externe de l'utilisateur destinataire
+            const receiverResult = await db.sql`
+                SELECT external_id
+                FROM users
+                WHERE user_id = ${receiver_id};
+            `;
 
-            return new Response(JSON.stringify(result.rows[0]), {
-                status: 201,
-                headers: { 'Content-Type': 'application/json' },
-            });
-        } else {
-            return new Response(JSON.stringify({ message: `Method ${request.method} not allowed` }), {
-                status: 405,
-                headers: { 'Content-Type': 'application/json' },
-            });
+            if (receiverResult.rowCount > 0) {
+                const receiverExternalId = receiverResult.rows[0].external_id;
+                await sendPushNotification([receiverExternalId], savedMessage, user);
+            } else {
+                return response.status(404).json({ error: "Receiver not found." });
+            }
         }
+
+        return response.status(200).json(savedMessage);
     } catch (error) {
-        console.error('Error:', error);
-        return new Response(JSON.stringify({ message: 'Internal server error', error: error.message }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        console.error("Error saving message:", error);
+        return response.status(500).json({ error: "An error occurred while saving the message." });
     }
-}
+};

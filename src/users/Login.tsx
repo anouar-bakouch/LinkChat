@@ -21,7 +21,6 @@ export function Login() {
       await loginUser(
         { user_id: -1, username, password },
         (result: Session) => {
-          console.log(result);
           setSession(result);
           form.reset();
           setError(null);

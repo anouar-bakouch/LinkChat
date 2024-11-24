@@ -14,8 +14,15 @@ const Notifications = ({ children }) => {
             const userExternalId = sessionStorage.getItem('externalId');
 
             if (!token || !userExternalId) {
+                console.warn("Token or userExternalId is missing");
                 return;
             }
+
+            if (!beamsClient) {
+                console.warn("Beams client is not initialized");
+                return;
+            }
+            
 
             const beamsTokenProvider = new TokenProvider({
                 url: "/api/beams",
@@ -23,12 +30,14 @@ const Notifications = ({ children }) => {
                     Authorization: "Bearer " + token,
                 },
             });
+
             try {
                 await beamsClient.start();
                 await beamsClient.addDeviceInterest('global'); 
-                console.log("Beams token", beamsTokenProvider);
+                console.log("Beams token provider initialized", beamsTokenProvider);
                 await beamsClient.setUserId(userExternalId, beamsTokenProvider);
                 const deviceId = await beamsClient.getDeviceId();
+                console.log("Device ID:", deviceId);
             } catch (error) {
                 console.error("Push notifications initialization error:", error);
             }
