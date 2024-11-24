@@ -33,8 +33,8 @@ export default async (request, response) => {
 
         // Initialiser le client Push Notifications
         const beamsClient = new PushNotifications({
-            instanceId: '097db24c-140f-4e07-8caa-17dfa6d83ea3',
-            secretKey: '62FAB2C7CDB32D45A008008E07BE12B6BC3BDD4FAC66DB3942594EC8280DECBD',
+            instanceId: process.env.REACT_APP_PUSHER_BEAMS_INSTANCE_ID,
+            secretKey: process.env.REACT_APP_PUSHER_BEAMS_SECRET_KEY,
         });
 
         // Fonction pour envoyer des notifications
