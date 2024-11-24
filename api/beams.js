@@ -10,10 +10,10 @@ export default async (req, res) => {
         return;
     }
 
-    console.log("Using push instance:", process.env.PUSHER_BEAMS_INSTANCE_ID);
+    console.log("Using push instance:", process.env.REACT_APP_PUSHER_BEAMS_INSTANCE_ID);
     const beamsClient = new PushNotifications({
-        instanceId: process.env.PUSHER_BEAMS_INSTANCE_ID,
-        secretKey: process.env.PUSHER_BEAMS_SECRET_KEY,
+        instanceId: process.env.REACT_APP_PUSHER_BEAMS_INSTANCE_ID,
+        secretKey: process.env.REACT_APP_PUSHER_BEAMS_SECRET_KEY,
     });
 
     const beamsToken = await beamsClient.generateToken(userIDInQueryParam);
