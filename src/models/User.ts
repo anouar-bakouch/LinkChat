@@ -1,11 +1,10 @@
 
 
 export interface User {
-
-    id : string;
+    user_id: number;
     username: string;
-    email: string;
+    email?: string;
     password: string;
-    lastLogin: string;
-    
+    last_login?: string;
+    external_id?: string;
 }

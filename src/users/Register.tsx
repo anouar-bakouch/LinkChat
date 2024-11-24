@@ -27,8 +27,8 @@ export function Register() {
     try {
       await registerUser({
         username, email, password: hashedPassword,
-        id: "",
-        lastLogin: ""
+        user_id: -1,
+        last_login: ""
       });
       form.reset();
       setError(null);

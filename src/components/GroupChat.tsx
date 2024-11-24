@@ -1,66 +1,84 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchMessages, sendMessage, uploadImageMessage } from '../features/user/messageSlice';
+import { fetchMessagesGrp, uploadImageMessage, addMessage } from '../features/user/messageSlice';
 import { RootState, AppDispatch } from '../store';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UserList } from './UserList';
 import { RoomsList } from './RoomsList';
 
-export const Chat = () => {
-  const { userId } = useParams();
+
+
+export const GroupeChat = () => {
+  const { roomId } = useParams<{ roomId: string }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { list: messages, loading, error } = useSelector((state: RootState) => state.messages);
+  const { listgrp: messages, loading, error } = useSelector((state: RootState) => state.messages);
   const [newMessage, setNewMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLInputElement>(null);
 
+  const parsedRoomId = Number(roomId);
   const navigate = useNavigate(); 
-
-  useEffect(() => {
-    if (userId) {
-      dispatch(fetchMessages({ receiverId: Number(userId), receiverType: 'user' }));
-    }
-  }, [dispatch, userId]);
-
   const handleLogout = () => {
     sessionStorage.clear(); // Clear session storage
     navigate('/'); // Rediriger vers la racine
   };
+  useEffect(() => {
+    if (!isNaN(parsedRoomId)) {
+      dispatch(fetchMessagesGrp({ receiverId: parsedRoomId, receiverType: 'group' }));
+    } else {
+      console.error('Invalid room ID:', roomId);
+    }
+  }, [dispatch, parsedRoomId]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
-    const newMessageObj = {
-      message_id: Date.now(),
-      sender_id: Number(sessionStorage.getItem('id')),
-      receiver_id: Number(userId),
+    const messageData = {
+      receiver_id: parsedRoomId,
+      image_url: '',
       content: newMessage.trim(),
-      timestamp: new Date().toISOString(),
-      image_url: null,
+      sender_id: Number(sessionStorage.getItem('id')),
+      receiver_type: 'group',
     };
 
-    setNewMessage('');
+    const token = sessionStorage.getItem('token');
+    const response = await fetch('/api/messages', {
+      method: 'POST',
+      headers: {
+        'Authentication': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageData),
+    });
 
-    await dispatch(sendMessage({
-      receiverId: Number(userId),
-      content: newMessageObj.content,
-    }));
+    if (response.ok) {
+      const sentMessage = await response.json();
+      dispatch(addMessage(sentMessage));
+      setNewMessage('');
+      dispatch(fetchMessagesGrp({ receiverId: parsedRoomId, receiverType: 'group' }));
+    } else {
+      console.error('Failed to send message');
+    }
   };
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files[0];
       setSelectedFile(file);
-
       await handleUploadImage(file);
     }
   };
 
   const handleUploadImage = async (file: File) => {
     if (file) {
-      const messageimage = newMessage.trim() === '' ? 'IMAGE' : newMessage.trim();
-      await dispatch(uploadImageMessage({ file, receiverId: Number(userId), receiverType: 'user', content: messageimage }));
+      await dispatch(uploadImageMessage({ file, receiverId: parsedRoomId, receiverType: 'group', content: newMessage.trim() }));
       setSelectedFile(null);
       setNewMessage('');
     }
@@ -69,12 +87,6 @@ export const Chat = () => {
   const handleFileButtonClick = () => {
     fileInputRef.current?.click();
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
 
   return (
     <div className="flex h-screen w-screen overflow-y-hidden">
@@ -116,26 +128,22 @@ export const Chat = () => {
   </div>
 </div>
 </div>
+
+      {/* Main Chat Area */}
       <div className="flex flex-col w-[80%] sticky top-0">
-        <div className="flex-1 p-4 overflow-y-auto h-screen">
-          {(
+      <div className="flex-1 p-4 overflow-y-auto h-screen">
+        {(
             <ul className="space-y-4">
               {messages.map((message, index) => (
-                <li
-                  key={message.message_id ? message.message_id : `message-${index}`}
-                  className={`flex ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'justify-end' : ''}`}
-                >
-                  <div
-                    className={`p-3 rounded-lg ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'bg-slate-700 text-white' : 'bg-gray-200 text-black'}`}
-                  >
+                <li key={message.message_id} className={`flex ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'justify-end' : ''}`}>
+                  <div className={`p-3 rounded-lg ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'bg-slate-700 text-white' : 'bg-gray-200 text-black'}`}>
                     {message.image_url ? (
-                      <img src={message.image_url} alt="Message attachment" className="max-w-xs max-h-60 rounded" />
+                      <img src={message.image_url} alt="Attachment" className="max-w-xs max-h-60 rounded" />
                     ) : (
                       <p>{message.content}</p>
                     )}
-                    <span className="text-xs text-gray-500">{message.timestamp}</span>
+                    <span className="text-xs text-gray-500">{message.sender_name} {message.timestamp}</span>
                   </div>
-
                   {index === messages.length - 1 && <div ref={scrollRef} />}
                 </li>
               ))}
@@ -155,10 +163,8 @@ export const Chat = () => {
             type="file"
             onChange={handleFileChange}
             className="hidden"
-            id="fileUpload"
             ref={fileInputRef}
           />
-
           <button onClick={handleFileButtonClick} className="bg-black text-white rounded-lg px-4 py-2 ml-2 w-[10%]">
             Upload Image
           </button>

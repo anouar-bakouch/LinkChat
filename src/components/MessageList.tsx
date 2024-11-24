@@ -1,3 +1,4 @@
+// MessageList.tsx
 import React from 'react';
 import { Message } from '../models/Message';
 
@@ -5,17 +6,14 @@ interface MessageListProps {
   messages: Message[];
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   return (
-    <div>
-      <h2>Messages</h2>
-      <ul>
-        {messages.map((message) => (
-          <li key={message.id}>
-            <strong>{message.userId}</strong>: {message.content}
-          </li>
-        ))}
-      </ul>
+    <div className="message-list">
+      {messages.map((message: Message) => (
+        <div key={message.message_id} className="message-item">
+          <strong>{message.sender}</strong>: {message.content}
+        </div>
+      ))}
     </div>
   );
-}
+};

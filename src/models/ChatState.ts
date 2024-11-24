@@ -6,4 +6,6 @@ export interface ChatState {
     users: User[];
     messages: Message[];
     currentUser: User | null;
-}
+    loading: boolean;
+    error?: string | null;
+  }

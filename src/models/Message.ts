@@ -1,9 +1,13 @@
 
 
 export interface Message {
-    id: string;
-    conversationId: string;
-    userId: string;
-    content: string;
-    createdAt: string;
-  }
+  message_id: number;
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+  image_url?:string;
+  timestamp: string;
+  sender?: string;
+}
+
+
