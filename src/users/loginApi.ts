@@ -1,31 +1,24 @@
-import { Session } from "../models/Session";
-import { User } from "../models/User";
-import { ErrorCallback } from "../models/ErrorCallback";
-import { SessionCallback } from "../models/SessionCallback";
-import { CustomError } from "../models/CustomError";
+import axios from 'axios';
+import { Session } from '../models/Session';
+import { CustomError } from '../models/CustomError';
 
-export function loginUser(user: User, onResult: SessionCallback, onError: ErrorCallback) {
-    fetch("/api/login",
-        {
-            method: "POST", // ou 'PUT'
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(user),
-        })
-        .then(async (response) => {
-            if (response.ok) {
-                const session = await response.json() as Session;
-                sessionStorage.setItem('token', session.token);
-                sessionStorage.setItem('externalId', session.externalId);
-                if(session.id){
-                sessionStorage.setItem('id', session.id.toString());
-                }
-                sessionStorage.setItem('username', session.username || "");
-                onResult(session)
-            } else {
-                const error = await response.json() as CustomError;
-                onError(error);
-            }
-        }, onError);
+export async function loginUser(
+  credentials: { user_id: number; username: string; password: string },
+  onSuccess: (session: Session) => void,
+  onError: (error: CustomError) => void
+) {
+  try {
+    const response = await axios.post('/api/login', credentials);
+    const session: Session = response.data;
+    sessionStorage.setItem('token', session.token);
+    sessionStorage.setItem('externalId', session.externalId);
+    if (session.id) {
+      sessionStorage.setItem('id', session.id.toString());
+    }
+    sessionStorage.setItem('username', session.username || '');
+    onSuccess(session);
+  } catch (error: any) {
+    const customError = new CustomError(error.response?.data?.message || 'Login failed');
+    onError(customError);
+  }
 }
