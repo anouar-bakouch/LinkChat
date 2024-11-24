@@ -25,7 +25,7 @@ export function Login() {
           setSession(result);
           form.reset();
           setError(null);
-          navigate('/messages/');
+          navigate('/chat/');
         },
         (loginError: CustomError) => {
           console.log(loginError);

@@ -34,6 +34,7 @@ export default async function handler(request) {
                 headers: { 'content-type': 'application/json' },
             });
         }
+
     } catch (error) {
         console.log(error);
         return new Response(JSON.stringify(error), {

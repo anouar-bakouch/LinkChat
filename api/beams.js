@@ -1,25 +1,24 @@
-import {getConnecterUser, triggerNotConnected} from "../lib/session.js";
-
+import { getConnecterUser, triggerNotConnected } from "../lib/session.js";
 import PushNotifications from '@pusher/push-notifications-server';
 
-
 export default async (req, res) => {
-    console.log("haha")
+    console.log("Initializing Beams");
     const userIDInQueryParam = req.query["user_id"];
     const user = await getConnecterUser(req);
-    if (user === undefined || user === null || userIDInQueryParam !== user.externalId) {
+    if (!user || userIDInQueryParam !== user.externalId) {
         triggerNotConnected(res);
         return;
-    }   
- 
+    }
 
-    console.log("Using push instance : " + process.env.PUSHER_INSTANCE_ID);
+    console.log("Using push instance:", process.env.PUSHER_BEAMS_INSTANCE_ID);
     const beamsClient = new PushNotifications({
-        instanceId: '097db24c-140f-4e07-8caa-17dfa6d83ea3',
-        secretKey: '62FAB2C7CDB32D45A008008E07BE12B6BC3BDD4FAC66DB3942594EC8280DECBD',
+        instanceId: process.env.PUSHER_BEAMS_INSTANCE_ID,
+        secretKey: process.env.PUSHER_BEAMS_SECRET_KEY,
     });
 
-    const beamsToken = beamsClient.generateToken(user.externalId);
-    console.log("ha lval dyalo",beamsToken)
-    res.send(beamsToken);
+    const beamsToken = await beamsClient.generateToken(userIDInQueryParam);
+    res.json(beamsToken);
+
+    console.log("Beams initialized");
+    
 };

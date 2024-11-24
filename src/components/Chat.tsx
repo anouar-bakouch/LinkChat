@@ -5,6 +5,21 @@ import { RootState, AppDispatch } from '../store';
 import { useNavigate, useParams } from 'react-router-dom';
 import { UserList } from './UserList';
 import { RoomsList } from './RoomsList';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  TextField,
+  IconButton,
+  List,
+  ListItem,
+  Paper,
+  Container,
+  Input,
+} from '@mui/material';
+import { Logout, Send, PhotoCamera } from '@mui/icons-material';
 
 export const Chat = () => {
   const { userId } = useParams();
@@ -15,7 +30,7 @@ export const Chat = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLInputElement>(null);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
@@ -25,7 +40,7 @@ export const Chat = () => {
 
   const handleLogout = () => {
     sessionStorage.clear(); // Clear session storage
-    navigate('/'); // Rediriger vers la racine
+    navigate('/'); // Redirect to root
   };
 
   const handleSendMessage = async () => {
@@ -42,10 +57,12 @@ export const Chat = () => {
 
     setNewMessage('');
 
-    await dispatch(sendMessage({
-      receiverId: Number(userId),
-      content: newMessageObj.content,
-    }));
+    await dispatch(
+      sendMessage({
+        receiverId: Number(userId),
+        content: newMessageObj.content,
+      })
+    );
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,102 +89,108 @@ export const Chat = () => {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
   return (
-    <div className="flex h-screen w-screen overflow-y-hidden">
-      <div className="w-1/4 bg-white border-r border-gray-300 sticky top-0">
-        <header className="p-4 border-b border-gray-300 flex justify-between items-center bg-black text-white ">
-          <h1 className="text-2xl font-semibold">UBO Chat Relay</h1>
-          <button
-        onClick={handleLogout}
-        className="flex items-center gap-2  hover:bg-gray-400 hover:text-black text-white py-2 px-4 rounded transition"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
-          />
-        </svg>
-        Déconnexion
-      </button>
-        </header>
-        <div className="flex flex-col w-[100%] h-full">
-  {/* Section pour "Utilisateurs" */}
-  <div className="p-4 text-xl font-semibold flex-shrink-0 text-center">Utilisateurs</div>
-  <div className="flex-1 overflow-y-auto">
-    <UserList />
-  </div>
+    <Box display="flex" height="100vh" overflow="hidden">
+      {/* Sidebar */}
+      <Box width="25%" borderRight="1px solid #ccc">
+        <AppBar position="sticky" sx={{ backgroundColor: 'white' }}>
+          <Toolbar>
+          <img
+          alt="UBO"
+          width={30}
+          height={30}
+          src="https://play-lh.googleusercontent.com/c5HiVEILwq4DqYILPwcDUhRCxId_R53HqV_6rwgJPC0j44IaVlvwASCi23vGQh5G3LIZ"
+          className="mx-auto h-10 w-auto"
+        />
+            <Button
+              sx = {{ color: 'blue', marginLeft:7 } }
+              startIcon={<Logout />}
+              onClick={handleLogout}
+            >
+              Déconnexion
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Box height="calc(100% - 64px)" display="flex" flexDirection="column">
+          <Box p={2}>
+            <Typography variant="h6" textAlign="center">
+              Utilisateurs
+            </Typography>
+            <UserList />
+          </Box>
+          <Box p={2}>
+            <Typography variant="h6" textAlign="center">
+              Groupes
+            </Typography>
+            <RoomsList />
+          </Box>
+        </Box>
+      </Box>
 
-  {/* Section pour "Groupes" */}
-  <div className="p-4 text-xl font-semibold flex-shrink-0 text-center">Groupes</div>
-  <div className="flex-1 overflow-y-auto">
-    <RoomsList />
-  </div>
-</div>
-</div>
-      <div className="flex flex-col w-[80%] sticky top-0">
-        <div className="flex-1 p-4 overflow-y-auto h-screen">
-          {(
-            <ul className="space-y-4">
-              {messages.map((message, index) => (
-                <li
-                  key={message.message_id ? message.message_id : `message-${index}`}
-                  className={`flex ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'justify-end' : ''}`}
+      {/* Main Chat */}
+      <Box width="75%" display="flex" flexDirection="column">
+        {/* Messages */}
+        <Box flex="1" p={2} overflow="auto">
+          <List>
+            {messages.map((message, index) => (
+              <ListItem
+                key={message.message_id || `message-${index}`}
+                sx={{
+                  display: 'flex',
+                  justifyContent: message.sender_id === Number(sessionStorage.getItem('id')) ? 'flex-end' : 'flex-start',
+                }}
+              >
+                <Paper
+                  elevation={3}
+                  sx={{
+                    padding: 2,
+                    backgroundColor: message.sender_id === Number(sessionStorage.getItem('id')) ? 'primary.main' : 'grey.200',
+                    color: message.sender_id === Number(sessionStorage.getItem('id')) ? 'white' : 'black',
+                  }}
                 >
-                  <div
-                    className={`p-3 rounded-lg ${message.sender_id === Number(sessionStorage.getItem('id')) ? 'bg-slate-700 text-white' : 'bg-gray-200 text-black'}`}
-                  >
-                    {message.image_url ? (
-                      <img src={message.image_url} alt="Message attachment" className="max-w-xs max-h-60 rounded" />
-                    ) : (
-                      <p>{message.content}</p>
-                    )}
-                    <span className="text-xs text-gray-500">{message.timestamp}</span>
-                  </div>
+                  {message.image_url ? (
+                    <img src={message.image_url} alt="Message attachment" style={{ maxWidth: 200, borderRadius: 8 }} />
+                  ) : (
+                    <Typography>{message.content}</Typography>
+                  )}
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {message.timestamp}
+                  </Typography>
+                </Paper>
+              </ListItem>
+            ))}
+            <div ref={scrollRef} />
+          </List>
+        </Box>
 
-                  {index === messages.length - 1 && <div ref={scrollRef} />}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <footer className="bg-white border-t border-gray-300 p-4 flex items-center w-full justify-between">
-          <textarea
-            className="h-13 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 w-[84%] resize-none"
+        {/* Message Input */}
+        <Box display="flex" alignItems="center" p={2} borderTop="1px solid #ccc">
+          <TextField
             placeholder="Type your message here..."
+            variant="outlined"
+            fullWidth
+            multiline
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
           />
-
           <input
             type="file"
             onChange={handleFileChange}
-            className="hidden"
-            id="fileUpload"
             ref={fileInputRef}
+            style={{ display: 'none' }}
           />
-
-          <button onClick={handleFileButtonClick} className="bg-black text-white rounded-lg px-4 py-2 ml-2 w-[10%]">
-            Upload Image
-          </button>
-
-          <button onClick={handleSendMessage} className="bg-green-500 text-white rounded-lg px-4 py-2 ml-2 w-[6%]">
-            Send
-          </button>
-        </footer>
-      </div>
-    </div>
+          <IconButton onClick={handleFileButtonClick} sx={{ ml: 2 }}>
+            <PhotoCamera />
+          </IconButton>
+          <IconButton onClick={handleSendMessage} sx={{ ml: 2, backgroundColor: 'green', color: 'white' }}>
+            <Send />
+          </IconButton>
+        </Box>
+      </Box>
+    </Box>
   );
 };
