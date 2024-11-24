@@ -1,34 +1,45 @@
 import React, { useState } from 'react';
 import { loginUser } from './loginApi';
+import { Session } from '../models/Session';
 import { CustomError } from '../models/CustomError';
 import { useNavigate } from 'react-router-dom';
-import { Session } from '../models/Session';
 import { Container, Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
+import { hashPassword } from '../utils/hash';
 
 export function Login() {
-  const [error, setError] = useState({} as CustomError);
-  const [session, setSession] = useState({} as Session);
+  const [error, setError] = useState<CustomError | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    loginUser(
-      { user_id: -1, username: data.get('login') as string, password: data.get('password') as string },
-      (result: Session) => {
-        console.log(result);
-        setSession(result);
-        form.reset();
-        setError(new CustomError(''));
-        navigate('/messages/');
-      },
-      (loginError: CustomError) => {
-        console.log(loginError);
-        setError(loginError);
-        setSession({} as Session);
-      }
-    );
+    const username = data.get('login') as string;
+    const password = data.get('password') as string;
+
+    try {
+      const hashedPassword = await hashPassword(username, password);
+
+      await loginUser(
+        { user_id: -1, username, password: hashedPassword },
+        (result: Session) => {
+          console.log(result);
+          setSession(result);
+          form.reset();
+          setError(null);
+          navigate('/messages/');
+        },
+        (loginError: CustomError) => {
+          console.log(loginError);
+          setError(loginError);
+          setSession(null);
+        }
+      );
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(new CustomError('An unexpected error occurred.'));
+    }
   };
 
   return (
@@ -41,13 +52,15 @@ export function Login() {
           alignItems: 'center',
         }}
       >
-        <img
+         <img
           alt="UBO"
-          src="https://beachild.fr/wp-content/uploads/2024/03/logo-UBO-1-removebg-preview.png"
+          width={200}
+          height={200}
+          src="https://play-lh.googleusercontent.com/c5HiVEILwq4DqYILPwcDUhRCxId_R53HqV_6rwgJPC0j44IaVlvwASCi23vGQh5G3LIZ"
           className="mx-auto h-10 w-auto"
         />
         <Typography component="h1" variant="h5" sx={{ mt: 2 }}>
-          Linkchat
+          linkchat
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
@@ -78,7 +91,7 @@ export function Login() {
           >
             Connexion
           </Button>
-          {error.message && (
+          {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error.message}
             </Alert>

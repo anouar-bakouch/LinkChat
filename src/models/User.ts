@@ -7,4 +7,6 @@ export interface User {
     password: string;
     last_login?: string;
     external_id?: string;
+    created_at: string;
+    
 }
