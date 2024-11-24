@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../store';
 import axios from 'axios';
-import { Message } from '../../models/Message';
+import { Message} from '../../models/Message';
 import { Messagegrp } from '../../models/Messagegrp';
-import { MessagesState } from '../../models/MessageState';
-
+import { MessageState } from '../../models/MessageState';
 
 
 export const fetchMessages = createAsyncThunk<Message[], { receiverId: number; receiverType: string }, { rejectValue: string }>(
@@ -155,7 +154,7 @@ const messagesSlice = createSlice({
     listgrp: [],
     loading: false,
     error: null,
-  } as MessagesState,
+  } as MessageState,
   reducers: {
     addMessage: (state, action: PayloadAction<Message>) => {
       state.list.push(action.payload);

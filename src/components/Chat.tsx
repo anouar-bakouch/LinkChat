@@ -20,6 +20,7 @@ import {
   Input,
 } from '@mui/material';
 import { Logout, Send, PhotoCamera } from '@mui/icons-material';
+import { Message } from '../models/Message';
 
 export const Chat = () => {
   const { userId } = useParams();
@@ -136,7 +137,7 @@ export const Chat = () => {
         {/* Messages */}
         <Box flex="1" p={2} overflow="auto">
           <List>
-            {messages.map((message, index) => (
+            {messages.map((message:Message, index: number) => (
               <ListItem
                 key={message.message_id || `message-${index}`}
                 sx={{

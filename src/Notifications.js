@@ -3,9 +3,14 @@ import { Client, TokenProvider } from "@pusher/push-notifications-web";
 
 console.log("Notifications component loaded");
 
-const beamsClient = new Client({
-    instanceId: process.env.NEXT_PUBLIC_PUSHER_BEAMS_INSTANCE_ID,
-});
+const instanceId = process.env.REACT_APP_PUSHER_BEAMS_INSTANCE_ID;
+console.log("Instance ID:", instanceId);
+
+if (!instanceId) {
+    console.error("Instance ID is required but not provided.");
+}
+
+const beamsClient = instanceId ? new Client({ instanceId }) : null;
 
 const Notifications = ({ children }) => {
     useEffect(() => {
@@ -22,7 +27,6 @@ const Notifications = ({ children }) => {
                 console.warn("Beams client is not initialized");
                 return;
             }
-            
 
             const beamsTokenProvider = new TokenProvider({
                 url: "/api/beams",

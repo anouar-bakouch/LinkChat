@@ -3,7 +3,7 @@ import { Messagegrp } from "./Messagegrp";
 
 
 
-export interface MessagesState {
+export interface MessageState {
     list: Message[];
     listgrp: Messagegrp[];
     loading: boolean;
