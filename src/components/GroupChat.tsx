@@ -92,7 +92,7 @@ export const GroupeChat = () => {
     <div className="flex h-screen w-screen overflow-y-hidden">
       <div className="w-1/4 bg-white border-r border-gray-300 sticky top-0">
         <header className="p-4 border-b border-gray-300 flex justify-between items-center bg-black text-white ">
-          <h1 className="text-2xl font-semibold">UBO Chat Relay</h1>
+          <h1 className="text-2xl font-semibold">Linkchat</h1>
           <button
         onClick={handleLogout}
         className="flex items-center gap-2  hover:bg-gray-400 hover:text-black text-white py-2 px-4 rounded transition"

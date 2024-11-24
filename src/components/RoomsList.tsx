@@ -5,6 +5,17 @@ import { fetchRooms } from '../features/user/roomSlice';
 import { RootState, AppDispatch } from '../store';
 import { useNavigate } from 'react-router-dom';
 import { Room } from '../models/Room';
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  CircularProgress,
+  Typography,
+  Card,
+  Skeleton,
+} from '@mui/material';
 
 export const RoomsList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,45 +32,68 @@ export const RoomsList = () => {
   };
 
   return (
-    <div className="max-w-md mx-left bg-gray-100 shadow-lg rounded-lg overflow-y-auto md:max-w-lg align h-full">
-      <div className="md:flex">
-        <div className="w-full p-4">
-          {loading ? (
-            <ul>
-              {[...Array(10)].map((_, index) => (
-                <li key={index} className="flex justify-between items-center bg-white mt-2 p-2 animate-pulse rounded">
-                  <div className="flex flex-col ml-2 w-full">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                  <div className="flex flex-col items-center w-1/3">
-                    <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <ul>
-              {list.map((room: Room) => (
-                <li key={room.room_id}>
-                  <button
-                    onClick={() => handleRoomClick(room.room_id)}
-                    className="flex justify-between items-center bg-white mt-2 p-2 hover:shadow-lg rounded cursor-pointer transition w-full text-left"
-                  >
-                    <div className="flex flex-col ml-2">
-                      <span className="font-medium text-black">{room.name}</span>
-                      <span className="text-sm text-gray-400 truncate w-50">
-                        Created on: {new Date(room.created_on).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {error && <p className="text-red-500">{error}</p>}
-        </div>
-      </div>
-    </div>
+    <Card
+      sx={{
+        maxWidth: 600,
+        margin: 'auto',
+        padding: 2,
+        backgroundColor: '#f5f5f5',
+        boxShadow: 3,
+        borderRadius: 2,
+        height: '100%',
+        overflowY: 'auto',
+      }}
+    >
+      <Box>
+        {loading ? (
+          <List>
+            {[...Array(10)].map((_, index) => (
+              <ListItem key={index} disableGutters>
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height={50}
+                  animation="wave"
+                  sx={{ borderRadius: 1, mb: 1 }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <List>
+            {list.map((room: Room) => (
+              <ListItem key={room.room_id} disableGutters>
+                <ListItemButton
+                  onClick={() => handleRoomClick(room.room_id)}
+                  sx={{
+                    bgcolor: 'white',
+                    borderRadius: 1,
+                    transition: 'box-shadow 0.3s',
+                    '&:hover': {
+                      boxShadow: 3,
+                    },
+                    mb: 1,
+                  }}
+                >
+                  <ListItemText
+                    primary={room.name}
+                    primaryTypographyProps={{
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      color: 'black',
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        )}
+        {error && (
+          <Typography color="error" textAlign="center" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
+      </Box>
+    </Card>
   );
 };

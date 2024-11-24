@@ -1,68 +1,101 @@
+// UserList.tsx
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUsers } from '../features/user/userSlice';
-import { RootState, AppDispatch } from '../store';  
+import { RootState, AppDispatch } from '../store';
 import { useNavigate } from 'react-router-dom';
+import {
+  List,
+  ListItem,
+  ListItemAvatar,
+  Avatar,
+  ListItemText,
+  CircularProgress,
+  Typography,
+  Divider,
+} from '@mui/material';
+
+import { User } from '../models/User';
 
 export const UserList = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { list, loading, error } = useSelector((state: RootState) => state.users);
+  const navigate = useNavigate();
+
+  const { list, loading, error } = useSelector((state: RootState) => state.users) as {
+    list: User[];
+    loading: boolean;
+    error: string | null;
+  };
+
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  const navigate = useNavigate();
+  const currentUsername = sessionStorage.getItem('username') || '';
 
-
-  const username = sessionStorage.getItem('username');
-
-  const filteredList = list.filter((user) => user.username !== username);
+  const filteredUsers = list.filter((user: User) => user.username !== currentUsername);
+  
+  // Select only the top three users
+  const topUsers = filteredUsers.slice(0, 3);
 
   const handleUserClick = (userId: number) => {
     navigate(`/messages/user/${userId}`);
   };
 
-  return (
-    <div className="max-w-md mx-left bg-gray-100 shadow-lg rounded-lg  overflow-y-auto md:max-w-lg align h-full">
-      <div className="md:flex">
-        <div className="w-full p-4">
-          {loading ? (
-            <ul>
-              {[...Array(10)].map((_, index) => (
-                <li key={index} className="flex justify-between items-center bg-white mt-2 p-2 animate-pulse rounded">
-                  <div className="flex flex-col ml-2 w-full">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                  <div className="flex flex-col items-center w-1/3">
-                    <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <ul>
-  {filteredList.map((user) => (
-    <li key={user.user_id}>
-      <button
-        onClick={() => handleUserClick(user.user_id)}
-        className="flex justify-between items-center bg-white mt-2 p-2 hover:shadow-lg rounded cursor-pointer transition w-full text-left"
-      >
-        <div className="flex flex-col ml-2">
-          <span className="font-medium text-black">{user.username}</span>
-          <span className="text-sm text-gray-400 truncate w-50">
-            Dernière connexion : {user.last_login}
-          </span>
-        </div>
-      </button>
-    </li>
-  ))}
-</ul>
-
-          
-          )}
-        </div>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <CircularProgress />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" className="text-center mt-4">
+        Erreur: {error}
+      </Typography>
+    );
+  }
+
+  return (
+    <div className="max-w-md mx-auto bg-gray-100 shadow-lg rounded-lg overflow-y-auto h-full">
+      <List>
+        {topUsers.length > 0 ? (
+          topUsers.map((user, index) => (
+            <React.Fragment key={user.user_id}>
+              <ListItem
+                component="li"  
+                onClick={() => handleUserClick(user.user_id)}
+                className="hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                <ListItemAvatar>
+                  <Avatar src={user.avatar_url} alt={user.username}>
+                    {user.username.charAt(0).toUpperCase()}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography variant="subtitle1" className="font-semibold">
+                      {user.username}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="body2" color="textSecondary">
+                      Dernière connexion : {user.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+              {index < topUsers.length - 1 && <Divider component="li" />}
+            </React.Fragment>
+          ))
+        ) : (
+          <Typography className="text-center text-gray-500 mt-4">
+            Aucun utilisateur disponible.
+          </Typography>
+        )}
+      </List>
     </div>
   );
 };

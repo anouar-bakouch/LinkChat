@@ -1,6 +1,8 @@
 
 
 export interface User {
+
+    avatar_url: string | undefined;
     user_id: number;
     username: string;
     email?: string;

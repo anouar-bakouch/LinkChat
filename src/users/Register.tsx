@@ -24,6 +24,7 @@ export function Register() {
         email,
         password,
         created_at: new Date().toISOString(), // Set the created_at field
+        avatar_url: undefined, // Set the avatar_url field
       };
 
       await registerUser(newUser);

@@ -19,6 +19,7 @@ export default async function handler(request) {
             });
         }
 
+
         // Hash the password using the same logic as in the frontend
         const hashedPassword = await hashPassword(username, password);
 
@@ -35,6 +36,9 @@ export default async function handler(request) {
         const user = rows[0];
         const token = crypto.randomUUID();
         await redis.set(token, JSON.stringify(user));
+
+        // update the last_login field
+        await client.sql`UPDATE users SET last_login = NOW() WHERE username = ${username}`;
 
         return new Response(JSON.stringify({ token, user }), {
             status: 200,
