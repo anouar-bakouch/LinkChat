@@ -16,26 +16,26 @@ CREATE TABLE sessions (
     expires_at TIMESTAMP NOT NULL
 );
 
--- Create conversations table
-CREATE TABLE conversations (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE rooms (
+   room_id serial PRIMARY KEY,
+   name VARCHAR ( 50 ) UNIQUE NOT NULL,
+   created_on TIMESTAMP NOT NULL,
+   created_by INTEGER NOT NULL
 );
 
--- Create participants table
-CREATE TABLE participants (
-    id SERIAL PRIMARY KEY,
-    conversation_id INTEGER REFERENCES conversations(id),
-    user_id INTEGER REFERENCES users(id),
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+insert into rooms (name, created_on, created_by) values ('General', now(), 4);
+insert into rooms (name, created_on, created_by) values ('News', now(), 4);
+insert into rooms (name, created_on, created_by) values ('Random', now(), 4);
 
--- Create messages table
 CREATE TABLE messages (
-    id SERIAL PRIMARY KEY,
-    conversation_id INTEGER REFERENCES conversations(id),
-    user_id INTEGER REFERENCES users(id),
+    message_id SERIAL PRIMARY KEY,
+    sender_id INTEGER NOT NULL,
+    sender_name TEXT NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    receiver_TYPE TEXT NOT NULL,
+    image_url TEXT NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(user_id),
+    FOREIGN KEY (receiver_id) REFERENCES users(user_id)
 );
