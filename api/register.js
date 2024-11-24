@@ -1,5 +1,5 @@
 import { db } from '@vercel/postgres';
-import { hashPassword } from '../utils/hash'; // Adjust the import path as necessary
+import { hashPassword } from '../src/utils/hash';
 
 export const config = {
     runtime: 'edge',
