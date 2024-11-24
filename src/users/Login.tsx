@@ -4,7 +4,6 @@ import { Session } from '../models/Session';
 import { CustomError } from '../models/CustomError';
 import { useNavigate } from 'react-router-dom';
 import { Container, Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
-import { hashPassword } from '../utils/hash';
 
 export function Login() {
   const [error, setError] = useState<CustomError | null>(null);
@@ -19,10 +18,8 @@ export function Login() {
     const password = data.get('password') as string;
 
     try {
-      const hashedPassword = await hashPassword(username, password);
-
       await loginUser(
-        { user_id: -1, username, password: hashedPassword },
+        { user_id: -1, username, password },
         (result: Session) => {
           console.log(result);
           setSession(result);
@@ -52,7 +49,7 @@ export function Login() {
           alignItems: 'center',
         }}
       >
-         <img
+        <img
           alt="UBO"
           width={200}
           height={200}

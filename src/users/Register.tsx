@@ -4,7 +4,6 @@ import { registerUser } from './RegisterApi';
 import { User } from '../models/User';
 import { CustomError } from '../models/CustomError';
 import { Container, Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
-import { hashPassword } from '../utils/hash';
 
 export function Register() {
   const [error, setError] = useState<CustomError | null>(null);
@@ -19,13 +18,11 @@ export function Register() {
     const password = data.get('password') as string;
 
     try {
-      const hashedPassword = await hashPassword(username, password);
-
       const newUser: User = {
         user_id: -1, // This will be set by the backend
         username,
         email,
-        password: hashedPassword,
+        password,
         created_at: new Date().toISOString(), // Set the created_at field
       };
 

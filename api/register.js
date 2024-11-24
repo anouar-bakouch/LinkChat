@@ -1,57 +1,52 @@
 import { db } from '@vercel/postgres';
-import { Redis } from '@upstash/redis';
-import { hashPassword } from '../lib/hash';
+import { hashPassword } from '../utils/hash'; // Adjust the import path as necessary
 
 export const config = {
     runtime: 'edge',
 };
 
-const redis = Redis.fromEnv();
-
-async function generateToken() {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 export default async function handler(request) {
-    if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ message: 'Method not allowed' }), { status: 405 });
-    }
-
-    const { username, email, password } = await request.json();
-
-    // Connect to PostgreSQL
-    const client = await db.connect();
-
     try {
-        // Check if user already exists
-        const existingUser = await client.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
-        if (existingUser.rows.length > 0) {
-            return new Response(JSON.stringify({ message: 'User already exists' }), { status: 400 });
+        const { username, email, password } = await request.json();
+        if (!username || !email || !password) {
+            const error = { code: "BAD_REQUEST", message: "Missing username, email, or password" };
+            return new Response(JSON.stringify(error), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json' },
+            });
         }
 
-        // Hash the password
-        const hashedPassword = await hashPassword(password);
+        const client = await db.connect();
 
-        // Insert new user into the database
-        const result = await client.query(
-            'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
-            [username, email, hashedPassword]
-        );
-        const newUser = result.rows[0];
+        try {
+            // Check if user already exists
+            const existingUser = await client.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
+            if (existingUser.rows.length > 0) {
+                return new Response(JSON.stringify({ message: 'User already exists' }), { status: 400 });
+            }
 
-        // Generate token
-        const token = await generateToken();
+            // Hash the password using the same logic as in the frontend
+            const hashedPassword = await hashPassword(username, password);
 
-        // Store token in Redis with a 1-hour expiration
-        await redis.set(token, JSON.stringify({ userId: newUser.id, username: newUser.username }), { ex: 3600 });
+            // Insert new user into the database
+            const result = await client.query(
+                'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
+                [username, email, hashedPassword]
+            );
+            const newUser = result.rows[0];
 
-        return new Response(JSON.stringify({ token }), { status: 201 });
+            return new Response(JSON.stringify(newUser), {
+                status: 201,
+                headers: { 'Content-Type': 'application/json' },
+            });
+        } finally {
+            client.release();
+        }
     } catch (error) {
-        console.error(error);
-        return new Response(JSON.stringify({ message: 'Internal server error' }), { status: 500 });
-    } finally {
-        client.release();
+        console.error('Error:', error);
+        return new Response(JSON.stringify({ message: 'Internal server error', error: error.message }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 }
